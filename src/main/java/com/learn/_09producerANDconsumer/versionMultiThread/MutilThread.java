@@ -1,48 +1,41 @@
 package com.learn._09producerANDconsumer.versionMultiThread;
 
 import com.learn._09producerANDconsumer.version2.ProducerConsumer;
+import sun.misc.Lock;
 
 import java.util.stream.Stream;
 
-public class Temp {
+public class MutilThread {
     // 表示产品
     private int i = 0;
 
     // 定义锁对象
     final private Object LOCK = new Object();
 
-    // 定义一个信号
+    // 定义一个信号,true 为生产、 false 为消费
     private volatile boolean isProduce = false;
 
     public void prodece() {
         synchronized (LOCK) {
-            if (isProduce) {
+            while(isProduce){
                 try {
-                    // 生产完之后等待
                     LOCK.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            } else {
-                // 生产完唤醒消费
-                i++;
-                System.out.println("PP->" + i);
-                // TODO
-                //没有明确唤醒那个
-                LOCK.notify();
-                isProduce = true;
             }
+            // 生产完唤醒消费
+            i++;
+            System.out.println("PP->" + i);
+            // TODO
+            LOCK.notifyAll();
+            isProduce = true;
         }
     }
 
     public void consumer() {
         synchronized (LOCK) {
-            if (isProduce) {
-                // 消费完之后唤醒生产
-                System.out.println("CC->" + i);
-                LOCK.notify();
-                isProduce = false;
-            } else {
+            while(!isProduce){
                 try {
                     // 没有产品时，等待
                     LOCK.wait();
@@ -50,11 +43,15 @@ public class Temp {
                     e.printStackTrace();
                 }
             }
+            // 消费完之后唤醒生产
+            System.out.println("CC->" + i);
+            LOCK.notifyAll();
+            isProduce = false;
         }
     }
 
     public static void main(String[] args) {
-        // 使用，wait 和 notify 多个生产者消费者后造成假死。
+
         ProducerConsumer producerConsumer = new ProducerConsumer();
         Stream.of("P1", "P2").forEach(n -> {
             new Thread() {

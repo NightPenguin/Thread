@@ -1,0 +1,4 @@
+1、sleep() 为Thread 方法、wait() 为object 方法。
+2、sleep() 不会释放锁，wait() 会是释放锁。
+3、sleep() 不需要依赖锁 synchronized，wait() 需要依赖synchronized。
+4、sleep() 不需要唤醒， wait() 需要。
